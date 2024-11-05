@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 
 
 app = Dash(__name__)
@@ -47,10 +48,10 @@ resultados = {
     0.8: {"Ingreso esperado": -27413.94, "Accuracy": 0.86},
     0.9: {"Ingreso esperado": -27624.71, "Accuracy": 0.86},
 }
-# Convertir los datos en un DataFrame
-df_resultados = pd.DataFrame(resultados).T.reset_index()
-df_resultados.columns = ['Umbral', 'Ingreso esperado', 'Accuracy']
-
+# Extrayendo valores para las listas
+indices = list(resultados.keys())
+ingresos = [resultados[key]["Ingreso esperado"] for key in resultados]
+accuracy = [resultados[key]["Accuracy"] for key in resultados]
 
 # Estilos generales
 app.layout = html.Div(
@@ -113,7 +114,7 @@ app.layout = html.Div(
                 ),
                 
                 html.Label("Edad (18 a 99):", style={'fontSize': '18px', 'fontWeight': 'bold'}),
-                dcc.Input(type='number', value=21, min=18, max=99, style={'width': '100%','height': '30px', 'marginBottom': '30px'}),
+                dcc.Input(type='number', value=21, min=18, max=99, style={'width': '100%', 'height': '30px', 'marginBottom': '30px'}),
                 
                 html.Label("Ocupación:", style={'fontSize': '18px', 'fontWeight': 'bold'}),
                 dcc.Dropdown(
@@ -203,14 +204,47 @@ app.layout = html.Div(
         ),
         html.Br(),
         html.Div(
-             [
-                html.H4("Análisis de Ingreso Esperado y Accuracy",style={'color': '#00254a', 'textAlign': 'center', 'fontSize': '22px'}),
-                dcc.Graph(id="resultados-graph", config={'displayModeBar': False}),
-            ],
-            style={'padding': '25px', 'border': '2px solid #003366', 'backgroundColor': '#E8F4FF','boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.1)'})
+            [
+                html.H1(children='Análisis de Ingreso Esperado y Accuracy'),
+
+                dcc.Graph(
+                    id='ingreso-accuracy-graph',
+                    figure={
+                        'data': [
+                            go.Scatter(
+                                x=indices,
+                                y=ingresos,
+                                mode='lines+markers',
+                                name='Ingreso Esperado',
+                                line=dict(color='blue')
+                            ),
+                            go.Scatter(
+                                x=indices,
+                                y=accuracy,
+                                mode='lines+markers',
+                                name='Accuracy',
+                                yaxis="y2",
+                                line=dict(color='green')
+                            )
+                        ],
+                        'layout': go.Layout(
+                            title='Relación entre Ingreso Esperado y Accuracy',
+                            xaxis={'title': 'Índice'},
+                            yaxis={'title': 'Ingreso Esperado', 'side': 'left'},
+                            yaxis2={
+                                'title': 'Accuracy',
+                                'overlaying': 'y',
+                                'side': 'right'
+                            },
+                            legend={'x': 0.1, 'y': 1.1},
+                        )
+                    }
+                )
+            ]
+        )
     ]
-),
-        
+)
+      
 
 
 
