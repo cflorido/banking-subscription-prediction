@@ -1,13 +1,27 @@
-from dash import dcc, html, Input, Output, State, Dash
+from dash import dcc, html, Input, Output, Dash
+import dash_bootstrap_components as dbc
 import psycopg2
 import pandas as pd
 import plotly.express as px
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-import psycopg2
+import matplotlib.pyplot as plt
+
 
 app = Dash(__name__)
+
+#Cargar modelos:
+# Cargar el modelo default
+#model3 = keras.models.load_model('models/modeloproy_03.keras')
+model1 = keras.models.load_model('models/modeloproy_01.keras')
+#model2 = keras.models.load_model('models/modeloproy_02.keras')
+#model4 = keras.models.load_model('models/modeloproy_04.keras')
+#model5 = keras.models.load_model('models/modeloproy_05.keras')
+#model6 = keras.models.load_model('models/modeloproy_06.keras')
+#model7 = keras.models.load_model('models/modeloproy_07.keras')
+#model8 = keras.models.load_model('models/modeloproy_08.keras')
+#model9 = keras.models.load_model('models/modeloproy_09.keras')
 
 # Conectar a la base de datos
 engine = psycopg2.connect(
@@ -18,145 +32,187 @@ engine = psycopg2.connect(
     port="5432"
 )
 
-#Cargar modelos:
-# Cargar el modelo default
-model3 = keras.models.load_model('models/modeloproy_03.keras')
+# Cargar modelo
 model1 = keras.models.load_model('models/modeloproy_01.keras')
-model2 = keras.models.load_model('models/modeloproy_02.keras')
-model4 = keras.models.load_model('models/modeloproy_04.keras')
-model5 = keras.models.load_model('models/modeloproy_05.keras')
-model6 = keras.models.load_model('models/modeloproy_06.keras')
-model7 = keras.models.load_model('models/modeloproy_07.keras')
-model8 = keras.models.load_model('models/modeloproy_08.keras')
-model9 = keras.models.load_model('models/modeloproy_09.keras')
 
+# Datos para la gráfica
+resultados = {
+    0.1: {"Ingreso esperado": 98213.46, "Accuracy": 0.30},
+    0.2: {"Ingreso esperado": 59827.85, "Accuracy": 0.58},
+    0.3: {"Ingreso esperado": 52050.41, "Accuracy": 0.63},
+    0.4: {"Ingreso esperado": 42358.89, "Accuracy": 0.68},
+    0.5: {"Ingreso esperado": 19292.33, "Accuracy": 0.76},
+    0.6: {"Ingreso esperado": 9156.47, "Accuracy": 0.81},
+    0.7: {"Ingreso esperado": -13594.80, "Accuracy": 0.84},
+    0.8: {"Ingreso esperado": -27413.94, "Accuracy": 0.86},
+    0.9: {"Ingreso esperado": -27624.71, "Accuracy": 0.86},
+}
+# Convertir los datos en un DataFrame
+df_resultados = pd.DataFrame(resultados).T.reset_index()
+df_resultados.columns = ['Umbral', 'Ingreso esperado', 'Accuracy']
+
+
+# Estilos generales
 app.layout = html.Div(
-    [   html.H1("Análisis de datos de clientes"),
+    style={
+        'backgroundColor': '#f4f8fb',
+        'fontFamily': 'Arial, sans-serif',
+        'padding': '30px'
+    },
+    children=[
+        html.H1(
+            "Análisis de Datos de Clientes",
+            style={
+                'textAlign': 'center',
+                'color': '#00254a',
+                'fontSize': '36px',
+                'fontWeight': 'bold',
+                'marginBottom': '30px'
+            }
+        ),
+        
+        # Umbral Card
+        dbc.Card(
+            style={
+                'padding': '25px',
+                'marginBottom': '20px',
+                'borderRadius': '15px',
+                'backgroundColor': '#ffffff',
+                'boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.1)'
+            },
+            children=[
+                html.Label(
+                    "Ingrese el Umbral",
+                    style={'fontSize': '22px', 'fontWeight': 'bold', 'color': '#003366'}
+                ),
+                dcc.Slider(
+                    min=0.1, max=0.9, step=0.1, value=0.3,
+                    marks={i: str(i) for i in [0.1, 0.3, 0.5, 0.7, 0.9]},
+                    tooltip={"placement": "bottom", "always_visible": True},
+                ),
+            ]
+        ),
+        
+        # Perfil del Cliente Card
+        dbc.Card(
+            style={
+                'padding': '25px',
+                'marginBottom': '20px',
+                'borderRadius': '15px',
+                'backgroundColor': '#ffffff',
+                'boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.1)'
+            },
+            children=[
+                html.P(
+                    "Seleccione el perfil del cliente que desea analizar",
+                    style={
+                        'fontSize': '18px',
+                        'fontWeight': 'bold',
+                        'marginBottom': '20px'
+                    }
+                ),
+                
+                html.Label("Edad (18 a 99):", style={'fontSize': '18px', 'fontWeight': 'bold'}),
+                dcc.Input(type='number', value=21, min=18, max=99, style={'width': '100%','height': '30px', 'marginBottom': '30px'}),
+                
+                html.Label("Ocupación:", style={'fontSize': '18px', 'fontWeight': 'bold'}),
+                dcc.Dropdown(
+                    options=[
+                        {'label': 'Desconocido', 'value': 'unknown'},
+                        {'label': 'Desempleado', 'value': 'unemployed'},
+                        {'label': 'Estudiante', 'value': 'student'},
+                        {'label': 'Gerente', 'value': 'management'},
+                        {'label': 'Técnico', 'value': 'technician'},
+                        {'label': 'Empresario', 'value': 'entrepreneur'},
+                        {'label': 'Obrero', 'value': 'blue-collar'},
+                        {'label': 'Jubilado', 'value': 'retired'},
+                        {'label': 'Administrativo', 'value': 'admin.'},
+                        {'label': 'Servicios', 'value': 'services'},
+                        {'label': 'Autónomo', 'value': 'self-employed'},
+                        {'label': 'Ama de casa', 'value': 'housemaid'}
+                    ],
+                    style={'width': '100%', 'marginBottom': '20px'}
+                ),
+                
+                html.Label("Estado Civil:", style={'fontSize': '18px', 'fontWeight': 'bold'}),
+                dcc.Dropdown(
+                    options=[
+                        {'label': 'Soltero', 'value': 'single'},
+                        {'label': 'Casado', 'value': 'married'},
+                        {'label': 'Divorciado', 'value': 'divorced'}
+                    ],
+                    style={'width': '100%', 'marginBottom': '15px'}
+                ),
+                
+                html.Label("Nivel Educativo:", style={'fontSize': '18px', 'fontWeight': 'bold'}),
+                dcc.Dropdown(
+                    options=[
+                        {'label': 'Desconocido', 'value': 'unknown'},
+                        {'label': 'Secundaria', 'value': 'high_school'}
+                    ],
+                    style={'width': '100%'}
+                ),
+            ]
+        ),
+        
+        # Estadísticas Card
+        dbc.Card(
+            style={
+                'padding': '25px',
+                'marginBottom': '20px',
+                'borderRadius': '15px',
+                'backgroundColor': '#ffffff',
+                'boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.1)'
+            },
+            children=[
+                html.H4(
+                    "Estadísticas",
+                    style={'fontSize': '22px', 'fontWeight': 'bold', 'color': '#003366'}
+                ),
+                html.P(
+                    "Número de coincidencias exactas:\nNúmero de coincidencias (Sí):\nNúmero de coincidencias (No):\nNúmero total de coincidencias:",
+                    style={'fontSize': '18px'}
+                ),
+                html.H4(
+                    "Predicción:",
+                    style={'fontSize': '22px', 'fontWeight': 'bold', 'color': '#003366'}
+                ),
+                html.P("Predicción (Sí):\nPredicción (No):", style={'fontSize': '18px'}),
+            ]
+        ),
+        
+        html.Br(),
 
-        #Seleccione el modelo a usar:
-        html.H3("Ingrese el umbral que desea utilizar de acuerdo a la gráfica anterior"),
-        html.Div(["Umbral: ",
-                  dcc.Slider(id ='umbral', min=0.1, max=0.9, step=0.1, value=0.3,
-                            marks={i/10: str(i/10) for i in range(1, 10)}
-                    )]),
-        html.H6("Seleccione el perfil del cliente que quiere analizar"),
-        html.Div(["Edad (18 a 99) ",
-            dcc.Input(
-                id='age', type='number', min=18, max=99, step=1, value=21
-            )
-        ]),
-        html.Div(["Ocupación: ",
-                  dcc.Dropdown(id='job', value='unknown',
-                               options=[
-                                   {'label': 'Desconocido', 'value': 'unknown'},
-                                    {'label': 'Desempleado', 'value': 'unemployed'},
-                                    {'label': 'Estudiante', 'value': 'student'},
-                                    {'label': 'Gerente', 'value': 'management'},
-                                    {'label': 'Técnico', 'value': 'technician'},
-                                    {'label': 'Empresario', 'value': 'entrepreneur'},
-                                    {'label': 'Obrero', 'value': 'blue-collar'},
-                                    {'label': 'Jubilado', 'value': 'retired'},
-                                    {'label': 'Administrativo', 'value': 'admin.'},
-                                    {'label': 'Servicios', 'value': 'services'},
-                                    {'label': 'Autónomo', 'value': 'self-employed'},
-                                    {'label': 'Ama de casa', 'value': 'housemaid'}
-                                 ])]),
-        html.Div(["Estado civil: ",
-                  dcc.Dropdown(id='marital', value='single',
-                               options=[
-                                   {'label': 'Soltero', 'value': 'single'},
-                                   {'label': 'Casado', 'value': 'married'},
-                                   {'label': 'Divorciado', 'value': 'divorced'}
-                               ])]),
-        html.Div(["Nivel educativo: ",
-                  dcc.Dropdown(id='education', value='unknown',
-                               options=[
-                                    {'label': 'Desconocido', 'value': 'unknown'},
-                                    {'label': 'Primario', 'value': 'primary'},
-                                    {'label': 'Secundario', 'value': 'secondary'},
-                                    {'label': 'Terciario', 'value': 'tertiary'}
-                               ])]),
-        html.Div(["Saldo promedio anual (euros): ",
-            dcc.Input(
-                id='balance', type='number', min=0, max=10000000, step=1, value=0
-            )
-        ]),
-        html.Div(["Tiene un préstamo de vivienda: ",
-                    dcc.Dropdown(id='housing', value='no',
-                                 options=[
-                                        {'label': 'Sí', 'value': 'yes'},
-                                        {'label': 'No', 'value': 'no'}
-                                 ])]),
-        html.Div(["Tiene un préstamo personal: ",
-                dcc.Dropdown(id='loan', value='no',
-                                options=[
-                                    {'label': 'Sí', 'value': 'yes'},
-                                    {'label': 'No', 'value': 'no'}
-                                ])]),
-        html.Div(["Contacto: ",
-                    dcc.Dropdown(id='contact', value='unknown',
-                                 options=[
-                                     {'label': 'Desconocido', 'value': 'unknown'},
-                                     {'label': 'Celular', 'value': 'cellular'},
-                                     {'label': 'Teléfono', 'value': 'telephone'}
-                                ])]),
-        html.Div(["Día del mes del último contacto (1-31): ",
-                    dcc.Input(id='day', type='number', min=1, max=31, step=1, value=1
-            )
-        ]),
-        html.Div(["Mes del último contacto: ",
-                    dcc.Dropdown(id='month', value='jan',
-                                options=[
-                                    {'label': 'Enero', 'value': 'jan'},
-                                    {'label': 'Febrero', 'value': 'feb'},
-                                    {'label': 'Marzo', 'value': 'mar'},
-                                    {'label': 'Abril', 'value': 'apr'},
-                                    {'label': 'Mayo', 'value': 'may'},
-                                    {'label': 'Junio', 'value': 'jun'},
-                                    {'label': 'Julio', 'value': 'jul'},
-                                    {'label': 'Agosto', 'value': 'aug'},
-                                    {'label': 'Septiembre', 'value': 'sep'},
-                                    {'label': 'Octubre', 'value': 'oct'},
-                                    {'label': 'Noviembre', 'value': 'nov'},
-                                    {'label': 'Diciembre', 'value': 'dec'}
-                                ])]),
-        html.Div(["Duración de la última llamada (segundos): ",
-                    dcc.Input(id='duration', type='number', min=0, max=10000, step=1, value=0
-            )
-        ]),
-        html.Div(["Número de contactos realizados durante esta campaña: ",
-                    dcc.Input(id='campaign', type='number', min=0, max=100, step=1, value=0
-            )
-        ]),
-        html.Div(["Número de días que pasaron desde el último contacto de una campaña anterior (Si no fue contactado, ingrese -1): ",
-                    dcc.Input(id='pdays', type='number', min=-1, max=1000, step=1, value=-1)]),
-        html.Div(["Número de contactos realizados antes de esta campaña: ",
-                    dcc.Input(id='previous', type='number', min=0, max=100, step=1, value=0)]),
-        html.Div(["Resultado de la campaña anterior: ",
-                    dcc.Dropdown(id='poutcome', value='unknown',
-                                 options=[
-                                    {'label': 'Desconocido', 'value': 'unknown'},
-                                    {'label': 'Otro', 'value': 'other'},
-                                    {'label': 'Fracaso', 'value': 'failure'},
-                                    {'label': 'Éxito', 'value': 'success'}
-                                ])]),
+        # Gráficos
+        html.Div(
+            [
+                html.H4(
+                    "Gráficos de Coincidencias",
+                    style={'color': '#00254a', 'textAlign': 'center', 'fontSize': '22px'}
+                ),
+                dcc.Graph(id='pie-chart-coincidence', config={'displayModeBar': False}),
+                dcc.Graph(id='pie-chart-figLH', config={'displayModeBar': False})
+            ],
+            style={
+                'padding': '25px',
+                'border': '2px solid #003366',
+                'borderRadius': '15px',
+                'backgroundColor': '#E8F4FF',
+                'boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.1)'
+            }
+        ),
         html.Br(),
-        html.H4("Estadísticas:"),
-        html.Br(),
-        html.Div(["Número de coincidencias exactas:", html.Div(id='output-coincidenceE')]),
-        html.Div(["Número de coincidencias (Sí):", html.Div(id='output-coincidenceY')]),
-        html.Div(["Número de coincidencias (No):", html.Div(id='output-coincidenceN')]),
-        html.Div(["Número total de coincidencias:", html.Div(id='output-coincidence')]),
-        # Gráfico de torta para las coincidencias
-        dcc.Graph(id='pie-chart-coincidence'),
-        # Gráfico de torta para las coincidencias
-        dcc.Graph(id='pie-chart-figLH'),
-        html.Br(),
-        html.H4("Predicción:"),
-        html.Div(["Predicción (Sí):", html.Div(id='output-cdtY')]),
-        html.Div(["Predicción (No):", html.Div(id='output-cdtN')])
+        html.Div(
+             [
+                html.H4("Análisis de Ingreso Esperado y Accuracy",style={'color': '#00254a', 'textAlign': 'center', 'fontSize': '22px'}),
+                dcc.Graph(id="resultados-graph", config={'displayModeBar': False}),
+            ],
+            style={'padding': '25px', 'border': '2px solid #003366', 'backgroundColor': '#E8F4FF','boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.1)'})
     ]
-)
+),
+        
+
+
 
 @app.callback(
     Output('output-coincidenceE', 'children'),
@@ -165,6 +221,7 @@ app.layout = html.Div(
     Output('output-coincidence', 'children'),
     Output('pie-chart-coincidence', 'figure'),  # Output para el gráfico de torta
     Output('pie-chart-figLH', 'figure'),  # Output para el gráfico de torta
+    Output("resultados-graph", "figure"),
     Input('age', 'value'),
     Input('job', 'value'),
     Input('marital', 'value'),
@@ -306,7 +363,10 @@ def update_output_div(age, job, marital, education, balance, housing, loan, cont
     pie_df_loan_housing = pd.DataFrame(pie_data_loan_Housing)
     figLH = px.pie(pie_df_loan_housing, names='Resultado', values='LoansHousing', title="Distribución de (Sí/No) de acuerdo a Loan y Housing")
 
-    return coincidenceE, coincidenceY, coincidenceN, coincidence, fig1, figLH
+    fig_resultados = px.line(x=[0.1, 0.2, 0.3], y=[1000, 2000, 1500])
+    
+
+    return coincidenceE, coincidenceY, coincidenceN, coincidence, fig1, figLH, fig_resultados
 
 # Callback for updating client prediction
 @app.callback(
@@ -356,27 +416,29 @@ def update_prediccionCliente(umbral, age, job, marital, education, balance, cont
 
     print(input)
 
-    ypred = model3.predict(input)
+    ypred = model1.predict(input)
     #Seleccion del modelo:
     if umbral == 0.1:
         ypred = model1.predict(input)
-    elif umbral == 0.2:
-        ypred = model2.predict(input)
-    elif umbral == 0.4:
-        ypred = model4.predict(input)
-    elif umbral == 0.5:
-        ypred = model5.predict(input)
-    elif umbral == 0.6:
-        ypred = model6.predict(input)
-    elif umbral == 0.7:
-        ypred = model7.predict(input)
-    elif umbral == 0.8:
-        ypred = model8.predict(input)
-    elif umbral == 0.9:
-        ypred = model9.predict(input)
+    #elif umbral == 0.2:
+        #ypred = model2.predict(input)
+    #elif umbral == 0.4:
+       # ypred = model4.predict(input)
+    #elif umbral == 0.5:
+       # ypred = model5.predict(input)
+    #elif umbral == 0.6:
+       # ypred = model6.predict(input)
+    #elif umbral == 0.7:
+        #ypred = model7.predict(input)
+    #elif umbral == 0.8:
+       # ypred = model8.predict(input)
+   # elif umbral == 0.9:
+        #ypred = model9.predict(input)
 
     # Predict using the loaded model
     return '{0:.3f}'.format(ypred[0][0]), '{0:.3f}'.format(1-ypred[0][0])
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
