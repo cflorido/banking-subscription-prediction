@@ -54,9 +54,8 @@ app.layout = html.Div(
         }, children=[
         html.Div([
             dcc.Graph(id='comparison-graph'),
-            dcc.Graph(id='threshold-table'),
             dcc.Graph(id='prices-graph'),
-        ], style={'display': 'flex', 'flex-direction': 'column', 'gap': '20px'}),   
+        ], style={'display': 'flex', 'flex-direction': 'column', 'gap': '20px'}),
         ]),
         # Umbral
         html.Div(style={
@@ -75,6 +74,10 @@ app.layout = html.Div(
                 value=0.3,
                 marks={i / 10: str(i / 10) for i in range(1, 10)}
             ),
+            html.Div([
+                    dcc.Graph(id='threshold-table'),
+
+            ], style={'display': 'flex', 'flex-direction': 'column', 'gap': '20px'})
         ]),
 
         # Selección de perfil de cliente
@@ -85,11 +88,11 @@ app.layout = html.Div(
             'borderRadius': '10px',
             'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
         }, children=[
-            html.H6("Seleccione el perfil del cliente que quiere analizar"),
+            html.H3("Seleccione el perfil del cliente que quiere analizar"),
             html.Div([
-                html.Div(["Edad (18 a 99): ",
-                          dcc.Input(id='age', type='number', min=18, max=99, step=1, value=21)])
-            ]),
+                html.Div("Edad (18 a 99):", style={'margin-bottom': '10px'}),
+                dcc.Input(id='age', type='number', min=18, max=99, step=1, value=21)
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
             html.Br(),
             html.Div(["Ocupación: ",
                       dcc.Dropdown(
@@ -134,9 +137,10 @@ app.layout = html.Div(
                           ])
                       ]),
             html.Br(),
-            html.Div(["Saldo promedio anual (euros): ",
-                      dcc.Input(id='balance', type='number', min=0, max=10000000, step=1, value=0)
-                      ]),
+            html.Div([
+                html.Div("Saldo promedio anual (euros): "),
+                dcc.Input(id='balance', type='number', min=0, max=10000000, step=1, value=0)
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
             html.Br(),
             html.Div(["Tiene un préstamo de vivienda: ",
                       dcc.Dropdown(
@@ -169,9 +173,10 @@ app.layout = html.Div(
                           ])
                       ]),
             html.Br(),
-            html.Div(["Día del mes del último contacto (1-31): ",
-                      dcc.Input(id='day', type='number', min=1, max=31, step=1, value=1)
-                      ]),
+            html.Div([
+                html.Div("Día del mes del último contacto (1-31):"),
+                dcc.Input(id='day', type='number', min=1, max=31, step=1, value=1)
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
             html.Br(),
             html.Div(["Mes del último contacto: ",
                       dcc.Dropdown(
@@ -193,21 +198,25 @@ app.layout = html.Div(
                           ])
                       ]),
             html.Br(),
-            html.Div(["Duración de la última llamada (segundos): ",
-                      dcc.Input(id='duration', type='number', min=0, max=10000, step=1, value=0)
-                      ]),
+            html.Div([
+                html.Div("Duración de la última llamada (segundos): "),
+                dcc.Input(id='duration', type='number', min=0, max=10000, step=1, value=0)
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
             html.Br(),
-            html.Div(["Número de contactos realizados durante esta campaña: ",
-                      dcc.Input(id='campaign', type='number', min=0, max=100, step=1, value=0)
-                      ]),
+            html.Div([
+                html.Div("Número de contactos realizados durante esta campaña: "),
+                dcc.Input(id='campaign', type='number', min=0, max=100, step=1, value=0)
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
             html.Br(),
-            html.Div(["Número de días que pasaron desde el último contacto de una campaña anterior (Si no fue contactado, ingrese -1): ",
-                      dcc.Input(id='pdays', type='number', min=-1, max=1000, step=1, value=-1)
-                      ]),
+            html.Div([
+                html.Div("Número de días que pasaron desde el último contacto de una campaña anterior (Si no fue contactado, ingrese -1): "),
+                dcc.Input(id='pdays', type='number', min=-1, max=1000, step=1, value=-1)
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
             html.Br(),
-            html.Div(["Número de contactos realizados antes de esta campaña: ",
-                      dcc.Input(id='previous', type='number', min=0, max=100, step=1, value=0)
-                      ]),
+            html.Div([
+                html.Div("Número de contactos realizados antes de esta campaña: "),
+                dcc.Input(id='previous', type='number', min=0, max=100, step=1, value=0)
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
             html.Br(),
             html.Div(["Resultado de la campaña anterior: ",
                       dcc.Dropdown(
@@ -510,27 +519,40 @@ def update_output_div(age, job, marital, education, balance, housing, loan, cont
 # Callback for updating client prediction
 @app.callback(
     Output('output-prediction-pie', 'figure'),
-    [
-        Input('umbral', 'value'),
-        Input('age', 'value'),
-        Input('job', 'value'),
-        Input('marital', 'value'),
-        Input('education', 'value'),
-        Input('balance', 'value'),
-        Input('contact', 'value'),
-        Input('day', 'value'),
-        Input('month', 'value'),
-        Input('duration', 'value'),
-        Input('campaign', 'value'),
-        Input('pdays', 'value'),
-        Input('previous', 'value'),
-        Input('poutcome', 'value')
-    ]
+    Input('umbral', 'value'),
+    Input('age', 'value'),
+    Input('job', 'value'),
+    Input('marital', 'value'),
+    Input('education', 'value'),
+    Input('balance', 'value'),
+    Input('contact', 'value'),
+    Input('day', 'value'),
+    Input('month', 'value'),
+    Input('duration', 'value'),
+    Input('campaign', 'value'),
+    Input('pdays', 'value'),
+    Input('previous', 'value'),
+    Input('poutcome', 'value')
 )
 
 def update_prediccionCliente(umbral, age, job, marital, education, balance, contact, day, month, duration, campaign, pdays, previous, poutcome):
     umbral = float(umbral) if umbral is not None else 0.3
 
+    # Asignar valores predeterminados en caso de que alguno de los inputs sea None
+    age = int(age) if age is not None else 18
+    job = job if job is not None else 'unknown'
+    marital = marital if marital is not None else 'single'
+    education = education if education is not None else 'unknown'
+    balance = balance if balance is not None else 0
+    contact = contact if contact is not None else 'unknown'
+    day = day if day is not None else 1
+    month = month if month is not None else 'jan'
+    duration = duration if duration is not None else 0
+    campaign = campaign if campaign is not None else 0
+    pdays = pdays if pdays is not None else -1
+    previous = previous if previous is not None else 0
+    poutcome = poutcome if poutcome is not None else 'unknown'
+    
     dict = {'contact': {'cellular': 0, 'telephone': 1, 'unknown': 2},
             'education': {'primary': 0, 'secondary': 1, 'tertiary': 2, 'unknown': 3},
             'poutcome': {'failure': 0, 'other': 1, 'success': 2, 'unknown': 3},
