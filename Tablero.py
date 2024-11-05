@@ -348,9 +348,14 @@ def update_prediccionCliente(umbral, age, job, marital, education, balance, cont
     month = dict['month'][month]
     poutcome = dict['poutcome'][poutcome]
 
-    # ['contact', 'education', 'poutcome', 'marital', 'job', 'month', 'age', 'balance', 'campaign', 'pdays', 'previous']
-    input = np.array([[contact, education, poutcome, marital, job, month, int(age), float(balance), int(campaign), int(pdays), int(previous)]])
+    # ['contact', 'education', 'poutcome', 'marital', 'job', 'month', 'age', 'balance', 'campaign', 'pdays', 'previous', 'day']
+    #input = [[contact, education, poutcome, marital, job, month, int(age), float(balance), int(campaign), int(pdays), int(previous), int(duration), int(day)]]
+    input = [np.array([contact]), np.array([education]), np.array([poutcome]), np.array([marital]), np.array([job]),
+              np.array([month]), np.array([age]), np.array([balance]), np.array([campaign]), np.array([pdays]),
+              np.array([previous]), np.array([duration]), np.array([day])]
+
     print(input)
+
     ypred = model3.predict(input)
     #Seleccion del modelo:
     if umbral == 0.1:
@@ -371,7 +376,7 @@ def update_prediccionCliente(umbral, age, job, marital, education, balance, cont
         ypred = model9.predict(input)
 
     # Predict using the loaded model
-    return '{0:.3f}'.format(ypred[0][0]), '{0:.3f}'.format(ypred[0][1])
+    return '{0:.3f}'.format(ypred[0][0]), '{0:.3f}'.format(1-ypred[0][0])
 
 if __name__ == '__main__':
     app.run_server(debug=True)
