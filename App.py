@@ -153,11 +153,11 @@ app.layout = html.Div(
         html.Div(["Número de coincidencias (No):", html.Div(id='output-coincidenceN')]),
         html.Div(["Número total de coincidencias:", html.Div(id='output-coincidence')]),
         # Gráfico de torta para las coincidencias
-        dcc.Graph(id='pie-chart-coincidence'),
-        # Gráfico de torta para las coincidencias
-        dcc.Graph(id='pie-chart-figLH'),
+         html.Div([
+            dcc.Graph(id='pie-chart-coincidence'),
+            dcc.Graph(id='pie-chart-figLH')
+        ], style={'display': 'flex', 'flex-direction': 'row'}),
         html.Br(),
-        html.H3("Predicción:"),
         dcc.Graph(id='output-prediction-pie')
     ]
 )
