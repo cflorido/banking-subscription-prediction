@@ -19,8 +19,7 @@ engine = psycopg2.connect(
     port="5432"
 )
 
-#Cargar modelos:
-# Cargar el modelo default
+# Cargar modelos
 model3 = keras.models.load_model('models/modeloproy_03.keras')
 model1 = keras.models.load_model('models/modeloproy_01.keras')
 model2 = keras.models.load_model('models/modeloproy_02.keras')
@@ -31,130 +30,206 @@ model7 = keras.models.load_model('models/modeloproy_07.keras')
 model8 = keras.models.load_model('models/modeloproy_08.keras')
 model9 = keras.models.load_model('models/modeloproy_09.keras')
 
-
 app.layout = html.Div(
-    [   html.H1("Análisis de datos de clientes"),
+    style={'textAlign': 'center', 'padding': '20px'},  # Centra el contenido general
+    children=[
+        # Título
+        html.Div(
+            style={'backgroundColor': '#fa9fb5', 'padding': '30px', 'borderRadius': '10px'},
+            children=[
+                html.H1(
+                    "Análisis de Datos de Clientes",
+                    style={'fontSize': '40px', 'fontWeight': 'bold', 'color': '#333333'}
+                )
+            ]
+        ),
+
+        # Gráficos
+        html.Div(style={
+            'margin': '20px 0',
+            'padding': '20px',
+            'border': '1px solid #ccc',
+            'borderRadius': '10px',
+            'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }, children=[
         html.Div([
             dcc.Graph(id='comparison-graph'),
             dcc.Graph(id='threshold-table'),
             dcc.Graph(id='prices-graph'),
-        ], style={'display': 'flex', 'flex-direction': 'column', 'gap': '20px'}),
-
-        #Seleccione el modelo a usar:
-        html.Div(style={'margin': '20px 0', 'padding': '20px', 'border': '1px solid #ccc', 'border-radius': '10px', 'box-shadow': '0 4px 8px rgba(0, 0, 0, 0.1)'}, children=[
+        ], style={'display': 'flex', 'flex-direction': 'column', 'gap': '20px'}),   
+        ]),
+        # Umbral
+        html.Div(style={
+            'margin': '20px 0',
+            'padding': '20px',
+            'border': '1px solid #ccc',
+            'borderRadius': '10px',
+            'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }, children=[
             html.H3("Ingrese el umbral que desea utilizar de acuerdo a la gráfica anterior"),
-            html.Div(["Umbral: ",
-                      dcc.Slider(id='umbral', min=0.1, max=0.9, step=0.1, value=0.3,
-                                 marks={i/10: str(i/10) for i in range(1, 10)}
-                      )]),
+            dcc.Slider(
+                id='umbral',
+                min=0.1,
+                max=0.9,
+                step=0.1,
+                value=0.3,
+                marks={i / 10: str(i / 10) for i in range(1, 10)}
+            ),
         ]),
 
-        html.Div(style={'margin': '20px 0', 'padding': '20px', 'border': '1px solid #ccc', 'border-radius': '10px', 'box-shadow': '0 4px 8px rgba(0, 0, 0, 0.1)'}, children=[
+        # Selección de perfil de cliente
+        html.Div(style={
+            'margin': '20px 0',
+            'padding': '20px',
+            'border': '1px solid #ccc',
+            'borderRadius': '10px',
+            'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }, children=[
             html.H6("Seleccione el perfil del cliente que quiere analizar"),
-            html.Div(["Edad (18 a 99) ",
-                dcc.Input(
-                    id='age', type='number', min=18, max=99, step=1, value=21
-                )
+            html.Div([
+                html.Div(["Edad (18 a 99): ",
+                          dcc.Input(id='age', type='number', min=18, max=99, step=1, value=21)])
             ]),
+            html.Br(),
             html.Div(["Ocupación: ",
-                      dcc.Dropdown(id='job', value='unknown',
-                                   options=[
-                                       {'label': 'Desconocido', 'value': 'unknown'},
-                                        {'label': 'Desempleado', 'value': 'unemployed'},
-                                        {'label': 'Estudiante', 'value': 'student'},
-                                        {'label': 'Gerente', 'value': 'management'},
-                                        {'label': 'Técnico', 'value': 'technician'},
-                                        {'label': 'Empresario', 'value': 'entrepreneur'},
-                                        {'label': 'Obrero', 'value': 'blue-collar'},
-                                        {'label': 'Jubilado', 'value': 'retired'},
-                                        {'label': 'Administrativo', 'value': 'admin.'},
-                                        {'label': 'Servicios', 'value': 'services'},
-                                        {'label': 'Autónomo', 'value': 'self-employed'},
-                                        {'label': 'Ama de casa', 'value': 'housemaid'}
-                                     ])]),
+                      dcc.Dropdown(
+                          id='job',
+                          value='unknown',
+                          options=[
+                              {'label': 'Desconocido', 'value': 'unknown'},
+                              {'label': 'Desempleado', 'value': 'unemployed'},
+                              {'label': 'Estudiante', 'value': 'student'},
+                              {'label': 'Gerente', 'value': 'management'},
+                              {'label': 'Técnico', 'value': 'technician'},
+                              {'label': 'Empresario', 'value': 'entrepreneur'},
+                              {'label': 'Obrero', 'value': 'blue-collar'},
+                              {'label': 'Jubilado', 'value': 'retired'},
+                              {'label': 'Administrativo', 'value': 'admin.'},
+                              {'label': 'Servicios', 'value': 'services'},
+                              {'label': 'Autónomo', 'value': 'self-employed'},
+                              {'label': 'Ama de casa', 'value': 'housemaid'}
+                          ])
+                      ]),
+            html.Br(),
             html.Div(["Estado civil: ",
-                      dcc.Dropdown(id='marital', value='single',
-                                   options=[
-                                       {'label': 'Soltero', 'value': 'single'},
-                                       {'label': 'Casado', 'value': 'married'},
-                                       {'label': 'Divorciado', 'value': 'divorced'}
-                                   ])]),
+                      dcc.Dropdown(
+                          id='marital',
+                          value='single',
+                          options=[
+                              {'label': 'Soltero', 'value': 'single'},
+                              {'label': 'Casado', 'value': 'married'},
+                              {'label': 'Divorciado', 'value': 'divorced'},
+                          ])
+                      ]),
+            html.Br(),
             html.Div(["Nivel educativo: ",
-                      dcc.Dropdown(id='education', value='unknown',
-                                   options=[
-                                        {'label': 'Desconocido', 'value': 'unknown'},
-                                        {'label': 'Primario', 'value': 'primary'},
-                                        {'label': 'Secundario', 'value': 'secondary'},
-                                        {'label': 'Terciario', 'value': 'tertiary'}
-                                   ])]),
+                      dcc.Dropdown(
+                          id='education',
+                          value='unknown',
+                          options=[
+                              {'label': 'Desconocido', 'value': 'unknown'},
+                              {'label': 'Primario', 'value': 'primary'},
+                              {'label': 'Secundario', 'value': 'secondary'},
+                              {'label': 'Terciario', 'value': 'tertiary'}
+                          ])
+                      ]),
+            html.Br(),
             html.Div(["Saldo promedio anual (euros): ",
-                dcc.Input(
-                    id='balance', type='number', min=0, max=10000000, step=1, value=0
-                )
-            ]),
+                      dcc.Input(id='balance', type='number', min=0, max=10000000, step=1, value=0)
+                      ]),
+            html.Br(),
             html.Div(["Tiene un préstamo de vivienda: ",
-                        dcc.Dropdown(id='housing', value='no',
-                                     options=[
-                                            {'label': 'Sí', 'value': 'yes'},
-                                            {'label': 'No', 'value': 'no'}
-                                     ])]),
+                      dcc.Dropdown(
+                          id='housing',
+                          value='no',
+                          options=[
+                              {'label': 'Sí', 'value': 'yes'},
+                              {'label': 'No', 'value': 'no'}
+                          ])
+                      ]),
+            html.Br(),
             html.Div(["Tiene un préstamo personal: ",
-                    dcc.Dropdown(id='loan', value='no',
-                                    options=[
-                                        {'label': 'Sí', 'value': 'yes'},
-                                        {'label': 'No', 'value': 'no'}
-                                    ])]),
+                      dcc.Dropdown(
+                          id='loan',
+                          value='no',
+                          options=[
+                              {'label': 'Sí', 'value': 'yes'},
+                              {'label': 'No', 'value': 'no'}
+                          ])
+                      ]),
+            html.Br(),
             html.Div(["Contacto: ",
-                        dcc.Dropdown(id='contact', value='unknown',
-                                     options=[
-                                         {'label': 'Desconocido', 'value': 'unknown'},
-                                         {'label': 'Celular', 'value': 'cellular'},
-                                         {'label': 'Teléfono', 'value': 'telephone'}
-                                    ])]),
+                      dcc.Dropdown(
+                          id='contact',
+                          value='unknown',
+                          options=[
+                              {'label': 'Desconocido', 'value': 'unknown'},
+                              {'label': 'Celular', 'value': 'cellular'},
+                              {'label': 'Teléfono', 'value': 'telephone'}
+                          ])
+                      ]),
+            html.Br(),
             html.Div(["Día del mes del último contacto (1-31): ",
-                        dcc.Input(id='day', type='number', min=1, max=31, step=1, value=1
-                )
-            ]),
+                      dcc.Input(id='day', type='number', min=1, max=31, step=1, value=1)
+                      ]),
+            html.Br(),
             html.Div(["Mes del último contacto: ",
-                        dcc.Dropdown(id='month', value='jan',
-                                    options=[
-                                        {'label': 'Enero', 'value': 'jan'},
-                                        {'label': 'Febrero', 'value': 'feb'},
-                                        {'label': 'Marzo', 'value': 'mar'},
-                                        {'label': 'Abril', 'value': 'apr'},
-                                        {'label': 'Mayo', 'value': 'may'},
-                                        {'label': 'Junio', 'value': 'jun'},
-                                        {'label': 'Julio', 'value': 'jul'},
-                                        {'label': 'Agosto', 'value': 'aug'},
-                                        {'label': 'Septiembre', 'value': 'sep'},
-                                        {'label': 'Octubre', 'value': 'oct'},
-                                        {'label': 'Noviembre', 'value': 'nov'},
-                                        {'label': 'Diciembre', 'value': 'dec'}
-                                    ])]),
+                      dcc.Dropdown(
+                          id='month',
+                          value='jan',
+                          options=[
+                              {'label': 'Enero', 'value': 'jan'},
+                              {'label': 'Febrero', 'value': 'feb'},
+                              {'label': 'Marzo', 'value': 'mar'},
+                              {'label': 'Abril', 'value': 'apr'},
+                              {'label': 'Mayo', 'value': 'may'},
+                              {'label': 'Junio', 'value': 'jun'},
+                              {'label': 'Julio', 'value': 'jul'},
+                              {'label': 'Agosto', 'value': 'aug'},
+                              {'label': 'Septiembre', 'value': 'sep'},
+                              {'label': 'Octubre', 'value': 'oct'},
+                              {'label': 'Noviembre', 'value': 'nov'},
+                              {'label': 'Diciembre', 'value': 'dec'}
+                          ])
+                      ]),
+            html.Br(),
             html.Div(["Duración de la última llamada (segundos): ",
-                        dcc.Input(id='duration', type='number', min=0, max=10000, step=1, value=0
-                )
-            ]),
+                      dcc.Input(id='duration', type='number', min=0, max=10000, step=1, value=0)
+                      ]),
+            html.Br(),
             html.Div(["Número de contactos realizados durante esta campaña: ",
-                        dcc.Input(id='campaign', type='number', min=0, max=100, step=1, value=0
-                )
-            ]),
+                      dcc.Input(id='campaign', type='number', min=0, max=100, step=1, value=0)
+                      ]),
+            html.Br(),
             html.Div(["Número de días que pasaron desde el último contacto de una campaña anterior (Si no fue contactado, ingrese -1): ",
-                        dcc.Input(id='pdays', type='number', min=-1, max=1000, step=1, value=-1)]),
+                      dcc.Input(id='pdays', type='number', min=-1, max=1000, step=1, value=-1)
+                      ]),
+            html.Br(),
             html.Div(["Número de contactos realizados antes de esta campaña: ",
-                        dcc.Input(id='previous', type='number', min=0, max=100, step=1, value=0)]),
+                      dcc.Input(id='previous', type='number', min=0, max=100, step=1, value=0)
+                      ]),
+            html.Br(),
             html.Div(["Resultado de la campaña anterior: ",
-                        dcc.Dropdown(id='poutcome', value='unknown',
-                                     options=[
-                                        {'label': 'Desconocido', 'value': 'unknown'},
-                                        {'label': 'Otro', 'value': 'other'},
-                                        {'label': 'Fracaso', 'value': 'failure'},
-                                        {'label': 'Éxito', 'value': 'success'}
-                                    ])]),
+                      dcc.Dropdown(
+                          id='poutcome',
+                          value='unknown',
+                          options=[
+                              {'label': 'Desconocido', 'value': 'unknown'},
+                              {'label': 'Otro', 'value': 'other'},
+                              {'label': 'Fracaso', 'value': 'failure'},
+                              {'label': 'Éxito', 'value': 'success'}
+                          ])
+                      ]),
         ]),
 
         # Tarjeta para estadísticas
-        html.Div(style={'margin': '20px 0', 'padding': '20px', 'border': '1px solid #ccc', 'border-radius': '10px', 'box-shadow': '0 4px 8px rgba(0, 0, 0, 0.1)', 'text-align': 'center'}, children=[
+        html.Div(style={
+            'margin': '20px 0',
+            'padding': '20px',
+            'border': '1px solid #ccc',
+            'borderRadius': '10px',
+            'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }, children=[
             html.H4("Estadísticas:"),
             html.Div(["Número de coincidencias exactas:", html.Div(id='output-coincidenceE')]),
             html.Div(["Número de coincidencias (Sí):", html.Div(id='output-coincidenceY')]),
@@ -166,9 +241,15 @@ app.layout = html.Div(
                 dcc.Graph(id='pie-chart-figLH', style={'width': '48%', 'display': 'inline-block'}),
             ], style={'display': 'flex', 'justify-content': 'center'}),
         ]),
-        html.Div(style={'margin': '20px 0', 'padding': '20px', 'border': '1px solid #ccc', 'border-radius': '10px', 'box-shadow': '0 4px 8px rgba(0, 0, 0, 0.1)', 'text-align': 'center'}, children=[
+        html.Div(style={
+            'margin': '20px 0',
+            'padding': '20px',
+            'border': '1px solid #ccc',
+            'borderRadius': '10px',
+            'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }, children=[
             html.Div([
-            dcc.Graph(id='output-prediction-pie')
+                dcc.Graph(id='output-prediction-pie')
             ], style={'display': 'flex', 'justify-content': 'center'}),
         ]),
     ]
