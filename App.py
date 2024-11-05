@@ -282,6 +282,7 @@ app.layout = html.Div(
 
                     # Resultado de la campaña anterior
                     html.Div([
+                        html.Div("Resultado de la campaña anterior: ", style={'font-weight': 'bold', 'text-align': 'left', 'margin-bottom': '5px'}),
                        dcc.Dropdown(
                             id='poutcome',
                             value='unknown',
