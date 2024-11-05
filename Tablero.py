@@ -18,8 +18,17 @@ engine = psycopg2.connect(
     port="5432"
 )
 
-model = keras.models.load_model('models/modeloproy_03.keras')
-
+#Cargar modelos:
+# Cargar el modelo default
+model3 = keras.models.load_model('models/modeloproy_03.keras')
+model1 = keras.models.load_model('models/modeloproy_01.keras')
+model2 = keras.models.load_model('models/modeloproy_02.keras')
+model4 = keras.models.load_model('models/modeloproy_04.keras')
+model5 = keras.models.load_model('models/modeloproy_05.keras')
+model6 = keras.models.load_model('models/modeloproy_06.keras')
+model7 = keras.models.load_model('models/modeloproy_07.keras')
+model8 = keras.models.load_model('models/modeloproy_08.keras')
+model9 = keras.models.load_model('models/modeloproy_09.keras')
 
 app.layout = html.Div(
     [   html.H1("Análisis de datos de clientes"),
@@ -141,7 +150,11 @@ app.layout = html.Div(
         # Gráfico de torta para las coincidencias
         dcc.Graph(id='pie-chart-coincidence'),
         # Gráfico de torta para las coincidencias
-        dcc.Graph(id='pie-chart-figLH')
+        dcc.Graph(id='pie-chart-figLH'),
+        html.Br(),
+        html.H4("Predicción:"),
+        html.Div(["Predicción (Sí):", html.Div(id='output-cdtY')]),
+        html.Div(["Predicción (No):", html.Div(id='output-cdtN')])
     ]
 )
 
@@ -152,7 +165,6 @@ app.layout = html.Div(
     Output('output-coincidence', 'children'),
     Output('pie-chart-coincidence', 'figure'),  # Output para el gráfico de torta
     Output('pie-chart-figLH', 'figure'),  # Output para el gráfico de torta
-    Input('umbral', 'value'),
     Input('age', 'value'),
     Input('job', 'value'),
     Input('marital', 'value'),
@@ -170,28 +182,8 @@ app.layout = html.Div(
     Input('poutcome', 'value')
 )
 
-def update_output_div(umbral, age, job, marital, education, balance, housing, loan, contact, day, month, duration, campaign, pdays, previous, poutcome):
+def update_output_div(age, job, marital, education, balance, housing, loan, contact, day, month, duration, campaign, pdays, previous, poutcome):
     cursor = engine.cursor()
-    umbral = float(umbral) if umbral is not None else 0.3
-
-    # Cargar el modelo default
-    #Seleccion del modelo:
-    if umbral == 0.1:
-        model = keras.models.load_model('models/modeloproy_01.keras')
-    elif umbral == 0.2:
-        model = keras.models.load_model('models/modeloproy_02.keras')
-    elif umbral == 0.4:
-        model = keras.models.load_model('models/modeloproy_04.keras')
-    elif umbral == 0.5:
-        model = keras.models.load_model('models/modeloproy_05.keras')
-    elif umbral == 0.6:
-        model = keras.models.load_model('models/modeloproy_06.keras')
-    elif umbral == 0.7:
-        model = keras.models.load_model('models/modeloproy_07.keras')
-    elif umbral == 0.8:
-        model = keras.models.load_model('models/modeloproy_08.keras')
-    elif umbral == 0.9:
-        model = keras.models.load_model('models/modeloproy_09.keras')
 
     # Asignar valores predeterminados en caso de que alguno de los inputs sea None
     age = int(age) if age is not None else 18
@@ -314,8 +306,72 @@ def update_output_div(umbral, age, job, marital, education, balance, housing, lo
     pie_df_loan_housing = pd.DataFrame(pie_data_loan_Housing)
     figLH = px.pie(pie_df_loan_housing, names='Resultado', values='LoansHousing', title="Distribución de (Sí/No) de acuerdo a Loan y Housing")
 
-
     return coincidenceE, coincidenceY, coincidenceN, coincidence, fig1, figLH
+
+# Callback for updating client prediction
+@app.callback(
+    Output(component_id='output-cdtY', component_property='children'),
+    Output(component_id='output-cdtN', component_property='children'),
+    [
+        Input('umbral', 'value'),
+        Input('age', 'value'),
+        Input('job', 'value'),
+        Input('marital', 'value'),
+        Input('education', 'value'),
+        Input('balance', 'value'),
+        Input('contact', 'value'),
+        Input('day', 'value'),
+        Input('month', 'value'),
+        Input('duration', 'value'),
+        Input('campaign', 'value'),
+        Input('pdays', 'value'),
+        Input('previous', 'value'),
+        Input('poutcome', 'value')
+    ]
+)
+
+def update_prediccionCliente(umbral, age, job, marital, education, balance, contact, day, month, duration, campaign, pdays, previous, poutcome):
+    umbral = float(umbral) if umbral is not None else 0.3
+
+    dict = {'contact': {'cellular': 0, 'telephone': 1, 'unknown': 2},
+            'education': {'primary': 0, 'secondary': 1, 'tertiary': 2, 'unknown': 3},
+            'poutcome': {'failure': 0, 'other': 1, 'success': 2, 'unknown': 3},
+            'marital': {'divorced': 0, 'married': 1, 'single': 2},
+            'job': {'admin.': 0, 'blue-collar': 1, 'entrepreneur': 2, 'housemaid': 3, 'management': 4, 'retired': 5, 'self-employed': 6, 'services': 7, 'student': 8, 'technician': 9, 'unemployed': 10, 'unknown': 11},
+            'month': {'apr': 0, 'aug': 1, 'dec': 2, 'feb': 3, 'jan': 4, 'jul': 5, 'jun': 6, 'mar': 7, 'may': 8, 'nov': 9, 'oct': 10, 'sep': 11}}
+
+    # Convertir los valores de los inputs a los valores que el modelo espera
+    job = dict['job'][job]
+    marital = dict['marital'][marital]
+    education = dict['education'][education]
+    contact = dict['contact'][contact]
+    month = dict['month'][month]
+    poutcome = dict['poutcome'][poutcome]
+
+    # ['contact', 'education', 'poutcome', 'marital', 'job', 'month', 'age', 'balance', 'campaign', 'pdays', 'previous']
+    input = np.array([[contact, education, poutcome, marital, job, month, int(age), float(balance), int(campaign), int(pdays), int(previous)]])
+    print(input)
+    ypred = model3.predict(input)
+    #Seleccion del modelo:
+    if umbral == 0.1:
+        ypred = model1.predict(input)
+    elif umbral == 0.2:
+        ypred = model2.predict(input)
+    elif umbral == 0.4:
+        ypred = model4.predict(input)
+    elif umbral == 0.5:
+        ypred = model5.predict(input)
+    elif umbral == 0.6:
+        ypred = model6.predict(input)
+    elif umbral == 0.7:
+        ypred = model7.predict(input)
+    elif umbral == 0.8:
+        ypred = model8.predict(input)
+    elif umbral == 0.9:
+        ypred = model9.predict(input)
+
+    # Predict using the loaded model
+    return '{0:.3f}'.format(ypred[0][0]), '{0:.3f}'.format(ypred[0][1])
 
 if __name__ == '__main__':
     app.run_server(debug=True)
