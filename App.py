@@ -36,6 +36,7 @@ app.layout = html.Div(
     [   html.H1("Análisis de datos de clientes"),
         dcc.Graph(id='comparison-graph'),
         dcc.Graph(id='threshold-table'),
+        dcc.Graph(id='prices-graph'),
 
         #Seleccione el modelo a usar:
         html.H3("Ingrese el umbral que desea utilizar de acuerdo a la gráfica anterior"),
@@ -156,9 +157,8 @@ app.layout = html.Div(
         # Gráfico de torta para las coincidencias
         dcc.Graph(id='pie-chart-figLH'),
         html.Br(),
-        html.H4("Predicción:"),
-        html.Div(["Predicción (Sí):", html.Div(id='output-cdtY')]),
-        html.Div(["Predicción (No):", html.Div(id='output-cdtN')])
+        html.H3("Predicción:"),
+        dcc.Graph(id='output-prediction-pie')
     ]
 )
 
@@ -203,10 +203,10 @@ def update_output(umbral):
 
     table_fig = go.Figure(data=[go.Table(
         header=dict(values=["Umbral", "Ingreso Esperado (€)", "Accuracy"],
-                    fill_color='paleturquoise',
-                    align='left'),
+                    fill_color='lavender',
+                    align='left',
+                    font=dict(size=14)),
         cells=dict(values=[[umbral], [ingreso_esperado], [accuracy]],
-                   fill_color='lavender',
                    align='left')
     )])
 
@@ -214,6 +214,52 @@ def update_output(umbral):
 
     return fig, table_fig
 
+@app.callback(
+    Output('prices-graph', 'figure'),
+    [Input('umbral', 'value')]
+)
+
+def update_prices(umbral):
+    # Example price data
+    datos_precios = {
+        'TP_precio': 106.68880783994922,
+        'FP_precio': -0.1238527007957243,
+        'TN_precio': 0.1238527007957243,
+        'FN_precio': -106.81266054074494
+    }
+
+    # Create a 2D array for the heatmap
+    price_matrix = np.array([[datos_precios['TP_precio'], datos_precios['FP_precio']],
+                              [datos_precios['TN_precio'], datos_precios['FN_precio']]])
+
+    # Create a heatmap for price values
+    fig = go.Figure(data=go.Heatmap(
+        z=price_matrix,
+        x=['Predicted Positive', 'Predicted Negative'],
+        y=['Actual Positive', 'Actual Negative'],
+        colorscale='RdPu',
+        colorbar=dict(title='Price Value')
+    ))
+
+    # Add annotations for price values
+    for i in range(price_matrix.shape[0]):
+        for j in range(price_matrix.shape[1]):
+            fig.add_annotation(
+                x=j,
+                y=i,
+                text=f'{price_matrix[i, j]:.2f}',
+                showarrow=False,
+                font=dict(color='white' if price_matrix[i, j] > 100 else 'black')
+            )
+
+    # Update layout
+    fig.update_layout(
+        title='Matriz de precios',
+        xaxis_title='Tipo de Precio Predecido',
+        yaxis_title='Tipo de precio Actual'
+    )
+
+    return fig
 
 @app.callback(
     Output('output-coincidenceE', 'children'),
@@ -346,13 +392,16 @@ def update_output_div(age, job, marital, education, balance, housing, loan, cont
     # Número total de coincidencias
     coincidence = coincidenceY + coincidenceN
 
+    custom_colors = ['#7a0177','#f768a1']  # Dark pink for 'Sí' and dark purple for 'No'
+
     # Gráfico de torta
     pie_data_Coincidences = {
         'Resultado': ['Sí', 'No'],
         'Coincidencias': [coincidenceY, coincidenceN]
     }
     pie_df = pd.DataFrame(pie_data_Coincidences)
-    fig1 = px.pie(pie_df, names='Resultado', values='Coincidencias', title="Distribución de Coincidencias (Sí/No)")
+    fig1 = px.pie(pie_df, names='Resultado', values='Coincidencias', title="Distribución de Coincidencias (Sí/No)", color_discrete_sequence=custom_colors)  # Apply the custom color sequence
+
 
 
     # Gráfico de torta
@@ -361,14 +410,13 @@ def update_output_div(age, job, marital, education, balance, housing, loan, cont
         'LoansHousing': [loand_housign_Y, loand_housign_N]
     }
     pie_df_loan_housing = pd.DataFrame(pie_data_loan_Housing)
-    figLH = px.pie(pie_df_loan_housing, names='Resultado', values='LoansHousing', title="Distribución de (Sí/No) de acuerdo a Loan y Housing")
+    figLH = px.pie(pie_df_loan_housing, names='Resultado', values='LoansHousing', title="Distribución de (Sí/No) de acuerdo a Loan y Housing", color_discrete_sequence=custom_colors) 
 
     return coincidenceE, coincidenceY, coincidenceN, coincidence, fig1, figLH
 
 # Callback for updating client prediction
 @app.callback(
-    Output(component_id='output-cdtY', component_property='children'),
-    Output(component_id='output-cdtN', component_property='children'),
+    Output('output-prediction-pie', 'figure'),
     [
         Input('umbral', 'value'),
         Input('age', 'value'),
@@ -431,9 +479,22 @@ def update_prediccionCliente(umbral, age, job, marital, education, balance, cont
         ypred = model8.predict(input)
     elif umbral == 0.9:
         ypred = model9.predict(input)
+# Prepare data for the pie chart
+    positive_prob = ypred[0][0]
+    negative_prob = 1 - positive_prob
 
-    # Predict using the loaded model
-    return '{0:.3f}'.format(ypred[0][0]), '{0:.3f}'.format(1-ypred[0][0])
+    pie_data = {
+        'Outcome': ['Yes', 'No'],
+        'Probability': [positive_prob, negative_prob]
+    }
+
+    # Create the pie chart
+    fig = px.pie(pie_data, names='Outcome', values='Probability', title='Distribución de la predicción',
+                 color_discrete_sequence=['#7a0177', '#f768a1'])  # Custom colors
+
+    # Return the pie chart figure
+    return fig
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
