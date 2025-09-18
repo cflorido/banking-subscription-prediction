@@ -71,7 +71,7 @@ Fase2/
 
 2. Run the dashboard
   ```bash
-  python dashboard.py
+  python app.py
   ```
 
 4. Access at
