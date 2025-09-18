@@ -16,14 +16,12 @@ The final solution was implemented as an interactive dashboard that enables busi
 The dashboard was deployed on **AWS (E2 Large instance)** to ensure accessibility and scalability, providing the commercial area with an intuitive tool for decision-making. By combining predictive analytics with interactive visualization, the system supports evidence-based strategies to increase customer acquisition and maximize bank revenue.  
 
 ---
-
 ## Documents
-- [Project Report – English](#)  
+- [Project Report – English](https://github.com/user-attachments/files/22415982/Proyecto2-Analitica.1.1.pdf)  
 - [Reporte del Proyecto – Español](https://github.com/user-attachments/files/22415961/Proyecto2-Analitica.pdf)  
 ---
-
 ## Presentations
-- [Presentation – English](#)  
+- [Presentation – English](https://github.com/user-attachments/files/22415984/Banco.1.1.pdf)  
 - [Presentación – Español](https://github.com/user-attachments/files/22415962/Banco.1.pdf)  
 
 ---
@@ -36,13 +34,6 @@ The dashboard was deployed on **AWS (E2 Large instance)** to ensure accessibilit
 Course: Business Intelligence – ISIS 3301  
 City: Bogotá, Colombia  
 Year: 2025  
-
----
-
-## Project Overview
-[Insert the English project overview here]  
-
-[Insert the Spanish project overview here]  
 
 ---
 
