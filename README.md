@@ -88,17 +88,65 @@ requirements.txt
 ---
 
 ## How to Run
-1. Install dependencies  
-   ```bash
-   pip install -r requirements.txt
+1. Create local virtual environment (`.venv`)
+  ```bash
+  python -m venv .venv
   ```
 
-2. Run the dashboard
+2. Activate environment
+  Windows (PowerShell):
+  ```powershell
+  .\.venv\Scripts\Activate.ps1
+  ```
+  Linux/macOS:
   ```bash
-  python app.py
+  source .venv/bin/activate
   ```
 
-4. Access at
+3. Install app dependencies
   ```bash
+  pip install -r requirements-app.txt
+  ```
+
+4. Run dashboard
+  ```bash
+  python App.py
+  ```
+
+5. Open in browser
+  ```text
   http://127.0.0.1:8050
-   ```
+  ```
+
+---
+
+## Database Configuration (Optional but Recommended)
+The app can run without database access, but statistics panels will show offline values if the DB is unreachable.
+
+You can configure these environment variables before running:
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+
+PowerShell example:
+```powershell
+$env:DB_HOST = "your-host"
+$env:DB_PORT = "5432"
+$env:DB_NAME = "prod"
+$env:DB_USER = "postgres"
+$env:DB_PASSWORD = "your-password"
+python App.py
+```
+
+---
+
+## Dependency Notes
+- `requirements-app.txt`: minimal dependencies required to run the dashboard.
+- `requirements.txt`: full analysis/notebook stack (can have stricter version constraints).
+
+## Runtime Fallbacks
+- If DB connection fails, the app still starts and shows a warning banner with offline stats.
+- If trained `.keras` models cannot be loaded (version incompatibility), prediction chart falls back to neutral probabilities (50/50) so UI stays available.
