@@ -39,16 +39,39 @@ Year: 2025
 
 ## Repository Structure
 ```bash
-Fase1/
-│── BusinessQuestions.pdf
-│── ExploratoryAnalysis.ipynb
-│── DataPreparation.ipynb
+src/
+│── dashboard/
+│   │── app.py
+│   │── tablero.py
+│   │── solorectificar_app.py
+│── data/
+│   │── load_database.py
 
-Fase2/
-│── Modeling.ipynb
-│── ThresholdAnalysis.ipynb
-│── dashboard.py
-│── requirements.txt
+data/
+│── raw/
+│   │── bank_data.csv
+│── processed/
+│   │── Umbral.csv
+
+artifacts/
+│── models/
+│   │── initial/
+│   │── final/
+
+notebooks/
+│── AnalisisDatos.ipynb
+│── limpieza.ipynb
+│── Fase_desbalance.ipynb
+│── Fase_variables_relevantes.ipynb
+│── Modelos_finales.ipynb
+│── installacion.ipynb
+
+docs/
+│── bank-diccionario.txt
+
+app.py
+README.md
+requirements.txt
 ```
 
 
@@ -68,6 +91,7 @@ Fase2/
 1. Install dependencies  
    ```bash
    pip install -r requirements.txt
+  ```
 
 2. Run the dashboard
   ```bash

@@ -1,14 +1,17 @@
 from dash import dcc, html, Input, Output, State, Dash
+from pathlib import Path
 import psycopg2
 import pandas as pd
 import plotly.express as px
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-import psycopg2
 import plotly.graph_objects as go
 
 app = Dash(__name__)
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+MODEL_DIR = ROOT_DIR / 'artifacts' / 'models' / 'final'
 
 # Conectar a la base de datos
 engine = psycopg2.connect(
@@ -21,15 +24,15 @@ engine = psycopg2.connect(
 
 #Cargar modelos:
 # Cargar el modelo default
-model3 = keras.models.load_model('models/modeloproy_03.keras')
-model1 = keras.models.load_model('models/modeloproy_01.keras')
-model2 = keras.models.load_model('models/modeloproy_02.keras')
-model4 = keras.models.load_model('models/modeloproy_04.keras')
-model5 = keras.models.load_model('models/modeloproy_05.keras')
-model6 = keras.models.load_model('models/modeloproy_06.keras')
-model7 = keras.models.load_model('models/modeloproy_07.keras')
-model8 = keras.models.load_model('models/modeloproy_08.keras')
-model9 = keras.models.load_model('models/modeloproy_09.keras')
+model3 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_03.keras'))
+model1 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_01.keras'))
+model2 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_02.keras'))
+model4 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_04.keras'))
+model5 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_05.keras'))
+model6 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_06.keras'))
+model7 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_07.keras'))
+model8 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_08.keras'))
+model9 = keras.models.load_model(str(MODEL_DIR / 'modeloproy_09.keras'))
 
 
 app.layout = html.Div(
